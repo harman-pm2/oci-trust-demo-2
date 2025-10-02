@@ -1,0 +1,27 @@
+name: Show GitHub OIDC Token
+
+on:
+  workflow_dispatch:   # allows manual run
+
+jobs:
+  show-jwt:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write   # 👈 REQUIRED for OIDC
+      contents: read
+
+    steps:
+      - name: Request OIDC token
+        run: |
+          echo "Fetching GitHub OIDC token..."
+          RESPONSE=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+                      "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=oci")
+          echo "Raw response:"
+          echo "$RESPONSE"
+          echo
+          echo "Decoded JWT header:"
+          echo "$RESPONSE" | jq -r '.value' | cut -d "." -f1 | base64 -d
+          echo
+          echo "Decoded JWT claims:"
+          echo "$RESPONSE" | jq -r '.value' | cut -d "." -f2 | base64 -d
